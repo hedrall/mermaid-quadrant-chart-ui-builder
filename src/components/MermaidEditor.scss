@@ -1,13 +1,18 @@
 .MermaidEditor {
   text-align: left;
 
+  h2 {
+    margin-bottom: 0;
+  }
   .Form {
     display: flex;
     flex-direction: column;
     gap: 16px;
 
-    h2 {
-      margin-bottom: 0;
+
+    .Title {
+        display: flex;
+        gap: 8px;
     }
 
     .Axis {
@@ -15,6 +20,11 @@
       grid-template-columns: 1fr 1fr 1fr;
       grid-template-rows: 1fr 1fr 1fr;
       gap: 8px;
+
+      > div {
+        display: flex;
+        gap: 8px;
+      }
 
       .X.Minus {
         grid-row: 2 / 3;
@@ -62,6 +72,29 @@
       }
     }
 
+    .Points {
+      position: relative;
+      .ButtonContainer {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        button {
+          //position: absolute;
+          right: 0;
+          margin: 8px;
+          top: 16px;
+        }
+      }
+      .Point {
+        display: flex;
+        gap: 8px;
+        > div {
+          display: flex;
+          gap: 8px;
+        }
+        margin-bottom: 8px;
+      }
+    }
   }
 
   .MermaidContainer {
@@ -71,6 +104,10 @@
 
   pre {
     text-align: left;
+    background: white;
+    color: black;
+    padding: 16px;
+    border-radius: 8px;
   }
 }
 

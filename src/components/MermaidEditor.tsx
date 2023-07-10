@@ -1,21 +1,29 @@
 import './MermaidEditor.scss';
 import React, { useEffect, useRef, useState } from 'react';
 import mermaid from 'mermaid';
-import { useController, useForm, Form } from 'react-hook-form';
-import { useDebouncedCallback } from 'use-debounce';
+import { useController, useForm, useFieldArray } from 'react-hook-form';
 
-type FormType = {
-  title: string;
-  x軸左: string;
-  x軸右: string;
-  y軸上: string;
-  y軸下: string;
-  第1象限: string;
-  第2象限: string;
-  第3象限: string;
-  第4象限: string;
-};
 namespace FormType {
+  export class Point {
+    constructor(
+      public label: string,
+      public x: number,
+      public y: number,
+    ) {}
+  }
+  export type Type = {
+    title: string;
+    x軸左: string;
+    x軸右: string;
+    y軸上: string;
+    y軸下: string;
+    第1象限: string;
+    第2象限: string;
+    第3象限: string;
+    第4象限: string;
+    points: Point[];
+  };
+
   export const Default = () => ({
     title: '',
     x軸左: '',
@@ -26,37 +34,54 @@ namespace FormType {
     第2象限: '',
     第3象限: '',
     第4象限: '',
+    points: [],
   });
 }
+type FormType = FormType.Type;
 
 namespace QueryParamConverter {
+  type Value = [string, string, string, string, string, string, string, string, string, FormType.Point[]];
+  type ValueLength = Value['length'];
+  const valueLength = 10 satisfies ValueLength;
+
   export const toQuery = (form: FormType) => {
-    const { title, x軸左, x軸右, y軸上, y軸下, 第1象限, 第2象限, 第3象限, 第4象限 } = form;
-    const valueString = JSON.stringify([title, x軸左, x軸右, y軸上, y軸下, 第1象限, 第2象限, 第3象限, 第4象限]);
+    const { title, x軸左, x軸右, y軸上, y軸下, 第1象限, 第2象限, 第3象限, 第4象限, points } = form;
+    const value = [title, x軸左, x軸右, y軸上, y軸下, 第1象限, 第2象限, 第3象限, 第4象限, points] satisfies Value;
+    const valueString = JSON.stringify(value);
     return `q=${encodeURIComponent(valueString)}`;
   };
   export const parseUrl = (): FormType => {
     const params = new URLSearchParams(decodeURIComponent(window.location.search));
     const q = params.get('q');
     if (!q) return FormType.Default();
-    const array = JSON.parse(q || '[]');
+    const parsed = JSON.parse(q || '[]') as Value;
+
+    // QueryParameterに指定された条件が不正な場合はデフォルト値を返す
+    if (parsed.length !== valueLength) {
+      console.warn('QueryParameterに指定された条件が不正');
+      return FormType.Default();
+    }
+
+    const [title, x軸左, x軸右, y軸上, y軸下, 第1象限, 第2象限, 第3象限, 第4象限, points] = parsed;
     return {
-      title: array[0] || '',
-      x軸左: array[1] || '',
-      x軸右: array[2] || '',
-      y軸上: array[3] || '',
-      y軸下: array[4] || '',
-      第1象限: array[5] || '',
-      第2象限: array[6] || '',
-      第3象限: array[7] || '',
-      第4象限: array[8] || '',
-    };
+      title: title || '',
+      x軸左: x軸左 || '',
+      x軸右: x軸右 || '',
+      y軸上: y軸上 || '',
+      y軸下: y軸下 || '',
+      第1象限: 第1象限 || '',
+      第2象限: 第2象限 || '',
+      第3象限: 第3象限 || '',
+      第4象限: 第4象限 || '',
+      points: (points || []).map(i => new FormType.Point(i.label, i.x, i.y)),
+    } satisfies FormType;
   };
 }
 
 const graphDefinition = (form: FormType) => {
-  const { title, x軸左, x軸右, y軸上, y軸下, 第1象限, 第2象限, 第3象限, 第4象限 } = form;
-  return `
+  const { title, x軸左, x軸右, y軸上, y軸下, 第1象限, 第2象限, 第3象限, 第4象限, points } = form;
+  return (
+    `
 quadrantChart
     title ${title}
     x-axis "${x軸左 || '(x軸左)'}" --> "${x軸右 || '(x軸右)'}"
@@ -65,9 +90,8 @@ quadrantChart
     quadrant-2 "${第2象限 || '(第2象限)'}"
     quadrant-3 "${第3象限 || '(第3象限)'}"
     quadrant-4 "${第4象限 || '(第4象限)'}"
-    Campaign A: [0.3, 0.6]
-    Campaign B: [0.45, 0.23]
-`;
+` + points.map(p => `    "${p.label || '未入力'}": [${Number(p.x) || 0.5}, ${Number(p.y) || 0.5}]`).join('\n')
+  );
 };
 
 export const MermaidEditor: React.FC = () => {
@@ -76,7 +100,7 @@ export const MermaidEditor: React.FC = () => {
   // URLのクエリパラメーターからデフォルト値を取得する
   const [defaultFormValue] = useState(QueryParamConverter.parseUrl());
 
-  const { control, getValues, reset } = useForm<FormType>({
+  const { control, getValues, reset, register, watch } = useForm<FormType>({
     mode: 'onChange',
     defaultValues: defaultFormValue,
   });
@@ -90,6 +114,7 @@ export const MermaidEditor: React.FC = () => {
   // const debounced = useDebouncedCallback(value => setDebouncedFormValue(value), 300);
 
   const values = getValues();
+  console.log(values.points);
   const graphDef = graphDefinition(values);
 
   // const debounced = useDebouncedCallback(
@@ -110,6 +135,7 @@ export const MermaidEditor: React.FC = () => {
   const 第2象限 = useController({ control, name: '第2象限' });
   const 第3象限 = useController({ control, name: '第3象限' });
   const 第4象限 = useController({ control, name: '第4象限' });
+  const points = useFieldArray({ control, name: 'points' });
 
   const [, setRefresher] = useState(0);
   const refresh = () => setRefresher(pre => pre + 1);
@@ -138,7 +164,7 @@ export const MermaidEditor: React.FC = () => {
     <div className={'MermaidEditor'}>
       <h1>mermaid editor</h1>
       <div className="Form">
-        <div className="SingleField">
+        <div className="Title">
           <label>タイトル</label>
           <input type="text" {...title.field} />
         </div>
@@ -162,9 +188,6 @@ export const MermaidEditor: React.FC = () => {
             <label>y軸(+)</label>
             <input {...y軸上.field} />
           </div>
-          <div className="CenterArrow">
-            <span className="Arrow">{}</span>
-          </div>
         </div>
         <h2>各象限の名前</h2>
         <div className="Quadrant">
@@ -185,11 +208,41 @@ export const MermaidEditor: React.FC = () => {
             <input type="text" {...第4象限.field} />
           </div>
         </div>
+        <h2>プロット</h2>
+        <div className="Points">
+          {points.fields.map((pointField, i) => {
+            const label = useController({ control, name: `points.${i}.label` });
+            const x = useController({ control, name: `points.${i}.x` });
+            const y = useController({ control, name: `points.${i}.y` });
+            return (
+              <div key={pointField.id} className="Point">
+                <span>Point {i + 1}: </span>
+                <div className="Label">
+                  <label>ラベル</label>
+                  <input {...label.field} />
+                </div>
+                <div className="X">
+                  <label>X</label>
+                  <input {...x.field} />
+                </div>
+                <div className="Y">
+                  <label>Y</label>
+                  <input {...y.field} />
+                </div>
+                <span onClick={() => points.remove(i)}>🗑️</span>
+              </div>
+            );
+          })}
+          <div className="ButtonContainer">
+            <button onClick={() => points.append(new FormType.Point('新規', 0.5, 0.5))}>ポイントを追加</button>
+          </div>
+        </div>
       </div>
       <div className="MermaidContainer" ref={containerRef}></div>
 
+      <h2>Markdown</h2>
       <pre>
-        <code>{graphDef} </code>
+        <code>{graphDef}</code>
       </pre>
     </div>
   );
