@@ -73,7 +73,10 @@
     }
 
     .Points {
-      position: relative;
+      //word-break: keep-all;
+
+      white-space: nowrap;
+
       .ButtonContainer {
         width: 100%;
         display: flex;
@@ -88,11 +91,17 @@
       .Point {
         display: flex;
         gap: 8px;
+        align-items: center;
+
         > div {
           display: flex;
           gap: 8px;
         }
+
         margin-bottom: 8px;
+        .SliderContainer {
+          width: 100%;
+        }
       }
     }
   }

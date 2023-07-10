@@ -2,6 +2,7 @@ import './MermaidEditor.scss';
 import React, { useEffect, useRef, useState } from 'react';
 import mermaid from 'mermaid';
 import { useController, useForm, useFieldArray } from 'react-hook-form';
+import { Slider } from 'antd';
 
 namespace FormType {
   export class Point {
@@ -80,6 +81,7 @@ namespace QueryParamConverter {
 
 const graphDefinition = (form: FormType) => {
   const { title, x軸左, x軸右, y軸上, y軸下, 第1象限, 第2象限, 第3象限, 第4象限, points } = form;
+
   return (
     `
 quadrantChart
@@ -90,7 +92,10 @@ quadrantChart
     quadrant-2 "${第2象限 || '(第2象限)'}"
     quadrant-3 "${第3象限 || '(第3象限)'}"
     quadrant-4 "${第4象限 || '(第4象限)'}"
-` + points.map(p => `    "${p.label || '未入力'}": [${Number(p.x) || 0.5}, ${Number(p.y) || 0.5}]`).join('\n')
+` +
+    points
+      .map(p => `    "${p.label || '未入力'}": [${Number(p.x) / 100 || 0.5}, ${Number(p.y) / 100 || 0.5}]`)
+      .join('\n')
   );
 };
 
@@ -221,20 +226,29 @@ export const MermaidEditor: React.FC = () => {
                   <label>ラベル</label>
                   <input {...label.field} />
                 </div>
-                <div className="X">
+                {/*<div className="X">*/}
+                {/*  <label>X</label>*/}
+                {/*  <input {...x.field} />*/}
+                {/*</div>*/}
+                {/*<div className="Y">*/}
+                {/*  <label>Y</label>*/}
+                {/*  <input {...y.field} />*/}
+                {/*</div>*/}
+
+                <div className="SliderContainer">
                   <label>X</label>
-                  <input {...x.field} />
+                  <Slider style={{ width: '100%' }} {...x.field} railStyle={{ background: 'grey' }} />
                 </div>
-                <div className="Y">
+                <div className="SliderContainer">
                   <label>Y</label>
-                  <input {...y.field} />
+                  <Slider style={{ width: '100%' }} {...y.field} railStyle={{ background: 'grey' }} />
                 </div>
                 <span onClick={() => points.remove(i)}>🗑️</span>
               </div>
             );
           })}
           <div className="ButtonContainer">
-            <button onClick={() => points.append(new FormType.Point('新規', 0.5, 0.5))}>ポイントを追加</button>
+            <button onClick={() => points.append(new FormType.Point('新規', 50, 50))}>ポイントを追加</button>
           </div>
         </div>
       </div>
