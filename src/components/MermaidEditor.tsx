@@ -1,7 +1,16 @@
 import './MermaidEditor.scss';
 import React, { useEffect, useRef, useState } from 'react';
 import mermaid from 'mermaid';
-import { Control, Controller, useController, useFieldArray, UseFieldArrayReturn, useForm } from 'react-hook-form';
+import {
+  Control,
+  Controller,
+  ControllerRenderProps,
+  useController,
+  useFieldArray,
+  UseFieldArrayReturn,
+  useForm,
+  UseFormRegisterReturn,
+} from 'react-hook-form';
 import { useDebouncedCallback } from 'use-debounce';
 // import { PointInput } from './Inputs/Point.tsx';
 import { FormType } from '../common/type';
@@ -34,7 +43,7 @@ export const MermaidEditor: React.FC = () => {
   const [defaultFormValue] = useState(QueryParamConverter.parseUrl());
   const [renderedSvg, setRenderedSvg] = useState('');
 
-  const { control, getValues, register } = useForm<FormType>({
+  const { control, getValues, register, reset } = useForm<FormType>({
     mode: 'onChange',
     defaultValues: defaultFormValue,
   });
@@ -45,11 +54,13 @@ export const MermaidEditor: React.FC = () => {
   }, []);
 
   const [svgDataUrl, setSvgDataUrl] = useState('');
-  const debouncedRenderSvg = useDebouncedCallback((svg: string) => {
+
+  const setSvg = (svg: string) => {
     setRenderedSvg(svg);
     const dataUrl = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svg)));
     setSvgDataUrl(dataUrl);
-  }, 50);
+  };
+  const debouncedRenderSvg = useDebouncedCallback(setSvg, 50);
 
   const values = getValues();
   const graphDef = graphDefinition(values);
@@ -75,7 +86,7 @@ export const MermaidEditor: React.FC = () => {
       .then(({ svg }) => {
         debouncedRenderSvg(svg);
         // container.innerHTML = svg;
-        // setRenderedSvg(svg);
+        // setSvg(svg);
         // refresh();
       })
       .catch(console.error);
@@ -135,42 +146,64 @@ export const MermaidEditor: React.FC = () => {
         <div className="Points">
           {points.fields.map((pointField, i) => {
             const labelName = `points.${i}.label` as const;
+            const xName = `points.${i}.x` as const;
+            const yName = `points.${i}.y` as const;
             // const label = useController({ control, name: labelName });
             // const x = useController({ control, name: `points.${i}.x` });
             // const y = useController({ control, name: `points.${i}.y` });
+            // なぜかresetしないと値が変わらない
+            const mod = (i: ControllerRenderProps) => {
+              return {
+                ...i,
+                onChange: (e: any) => {
+                  i.onChange(e);
+                  reset();
+                },
+              };
+            };
+            // const label = mod(register(labelName));
+            // const x = mod(register(xName));
+            // const y = mod(register(yName));
+
             return (
               <div className="Point" key={pointField.id}>
                 <span>Point {i + 1}: </span>
-                <div className="Label">
-                  <label>ラベル</label>
-                  <input {...register(labelName)} />
-                </div>
-                {/*<Controller*/}
-                {/*  name={labelName}*/}
-                {/*  control={control}*/}
-                {/*  render={({ field }) => {*/}
-                {/*    return (*/}
-                {/*      <div className="Label">*/}
-                {/*        <label>ラベル</label>*/}
-                {/*        <input*/}
-                {/*          {...field}*/}
-                {/*          onChange={e => {*/}
-                {/*            console.log('on', e, labelName);*/}
-                {/*            field.onChange(e);*/}
-                {/*          }}*/}
-                {/*        />*/}
-                {/*      </div>*/}
-                {/*    );*/}
-                {/*  }}*/}
-                {/*/>*/}
-                {/*<div className="SliderContainer">*/}
-                {/*  <label>X</label>*/}
-                {/*  <Slider style={{ width: '100%' }} {...x.field} railStyle={{ background: 'grey' }} />*/}
-                {/*</div>*/}
-                {/*<div className="SliderContainer">*/}
-                {/*  <label>Y</label>*/}
-                {/*  <Slider style={{ width: '100%' }} {...y.field} railStyle={{ background: 'grey' }} />*/}
-                {/*</div>*/}
+                <Controller
+                  name={labelName}
+                  control={control}
+                  render={({ field }) => {
+                    return (
+                      <div className="Label">
+                        <label>ラベル</label>
+                        <input {...mod(field)} />
+                      </div>
+                    );
+                  }}
+                />
+                <Controller
+                  name={xName}
+                  control={control}
+                  render={({ field }) => {
+                    return (
+                      <div className="SliderContainer">
+                        <label>X</label>
+                        <Slider style={{ width: '100%' }} {...mod(field)} railStyle={{ background: 'grey' }} />
+                      </div>
+                    );
+                  }}
+                />
+                <Controller
+                  name={yName}
+                  control={control}
+                  render={({ field }) => {
+                    return (
+                      <div className="SliderContainer">
+                        <label>Y</label>
+                        <Slider style={{ width: '100%' }} {...mod(field)} railStyle={{ background: 'grey' }} />
+                      </div>
+                    );
+                  }}
+                />
                 <span onClick={() => points.remove(i)}>🗑️</span>
               </div>
             );
