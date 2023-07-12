@@ -104,11 +104,29 @@
         }
       }
     }
+
+    .DetailSettings {
+      .Icon {
+        display: inline-block;
+        transition: all ease-in-out .3s;
+      }
+      &.Open .Icon {
+        transform: rotate(180deg);
+      }
+      .Inputs {
+      }
+    }
   }
 
-  .MermaidContainer {
+  .SvgContainer {
     margin-top: 16px;
+    padding: 24px;
     background: white;
+    border-radius: 8px;
+
+    img {
+      max-width: 480px;
+    }
   }
 
   pre {
@@ -117,6 +135,12 @@
     color: black;
     padding: 16px;
     border-radius: 8px;
+  }
+
+  .CopyContainer {
+    padding: 8px;
+    display: flex;
+    gap: 8px;
   }
 }
 
