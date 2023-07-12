@@ -1,21 +1,11 @@
 import './MermaidEditor.scss';
 import React, { useEffect, useRef, useState } from 'react';
 import mermaid from 'mermaid';
-import {
-  Control,
-  Controller,
-  ControllerRenderProps,
-  useController,
-  useFieldArray,
-  UseFieldArrayReturn,
-  useForm,
-  UseFormRegisterReturn,
-} from 'react-hook-form';
+import { Control, useController, useFieldArray, useForm } from 'react-hook-form';
 import { useDebouncedCallback } from 'use-debounce';
-// import { PointInput } from './Inputs/Point.tsx';
 import { FormType } from '../common/type';
 import { QueryParamConverter } from '../common/queryParamConverter';
-import { Slider } from 'antd';
+import { PointInput } from './Inputs/Point.tsx';
 
 const graphDefinition = (form: FormType) => {
   const { title, x軸左, x軸右, y軸上, y軸下, 第1象限, 第2象限, 第3象限, 第4象限, points } = form;
@@ -36,6 +26,107 @@ const graphDefinition = (form: FormType) => {
   );
 };
 
+const AxisInput = (props: { control: Control<FormType.Type, any> }) => {
+  const { control } = props;
+
+  const x軸左 = useController({ control, name: 'x軸左' });
+  const x軸右 = useController({ control, name: 'x軸右' });
+  const y軸上 = useController({ control, name: 'y軸上' });
+  const y軸下 = useController({ control, name: 'y軸下' });
+
+  return (
+    <div className="Axis">
+      <div className="X Minus">
+        <label>x軸(-)</label>
+        <input {...x軸左.field} />
+      </div>
+      {/*<span className="Arrow">{'-->'}</span>*/}
+      <div className="X Plus">
+        <label>x軸(+)</label>
+        <input {...x軸右.field} />
+      </div>
+      <div className="Y Minus">
+        <label>y軸(-)</label>
+        <input {...y軸下.field} />
+      </div>
+      {/*<span className="Arrow">{'-->'}</span>*/}
+      <div className="Y Plus">
+        <label>y軸(+)</label>
+        <input {...y軸上.field} />
+      </div>
+    </div>
+  );
+};
+
+function QuadrantInput(props: { control: Control<FormType.Type, any> }) {
+  const { control } = props;
+
+  const 第1象限 = useController({ control, name: '第1象限' });
+  const 第2象限 = useController({ control, name: '第2象限' });
+  const 第3象限 = useController({ control, name: '第3象限' });
+  const 第4象限 = useController({ control, name: '第4象限' });
+  return (
+    <div className="Quadrant">
+      <div className="SingleField D1">
+        <label>第1象限</label>
+        <input type="text" {...第1象限.field} />
+      </div>
+      <div className="SingleField D2">
+        <label>第2象限</label>
+        <input type="text" {...第2象限.field} />
+      </div>
+      <div className="SingleField D3">
+        <label>第3象限</label>
+        <input type="text" {...第3象限.field} />
+      </div>
+      <div className="SingleField D4">
+        <label>第4象限</label>
+        <input type="text" {...第4象限.field} />
+      </div>
+    </div>
+  );
+}
+
+const PointsInput = (props: { control: Control<FormType.Type, any> }) => {
+  const { control } = props;
+  const points = useFieldArray({ control, name: 'points' });
+  const appendPointHandler = () => points.append(new FormType.Point('新規', 50, 50));
+  return (
+    <div className="Points">
+      {points.fields.map((pointField, i) => {
+        return <PointInput key={pointField.id} control={control} index={i} onRemove={points.remove} />;
+      })}
+      <div className="ButtonContainer">
+        <button onClick={appendPointHandler}>ポイントを追加</button>
+      </div>
+    </div>
+  );
+};
+
+const CopyContainer = (props: { renderedSvg: string; graphDef: string }) => {
+  const { renderedSvg, graphDef } = props;
+
+  const mdString = () => `\`\`\`mermaid
+${graphDef}
+\`\`\`
+[編集](${window.location.href})
+`;
+
+  const copyMdHandler = () => {
+    navigator.clipboard.writeText(mdString());
+  };
+
+  const copySvgHandler = () => navigator.clipboard.writeText(renderedSvg);
+
+  return (
+    <div className="CopyContainer">
+      <button onClick={copyMdHandler}>MD</button>
+      {/*  copy svg to clip board */}
+      <button onClick={copySvgHandler}>SVG</button>
+    </div>
+  );
+};
+
 export const MermaidEditor: React.FC = () => {
   const containerRef = useRef<HTMLDivElement | null>(null);
 
@@ -43,7 +134,7 @@ export const MermaidEditor: React.FC = () => {
   const [defaultFormValue] = useState(QueryParamConverter.parseUrl());
   const [renderedSvg, setRenderedSvg] = useState('');
 
-  const { control, getValues, watch, setValue, register, reset } = useForm<FormType>({
+  const { control, watch } = useForm<FormType>({
     mode: 'all',
     defaultValues: defaultFormValue,
   });
@@ -66,28 +157,17 @@ export const MermaidEditor: React.FC = () => {
   const graphDef = graphDefinition(values);
 
   const title = useController({ control, name: 'title' });
-  const x軸左 = useController({ control, name: 'x軸左' });
-  const x軸右 = useController({ control, name: 'x軸右' });
-  const y軸上 = useController({ control, name: 'y軸上' });
-  const y軸下 = useController({ control, name: 'y軸下' });
-  const 第1象限 = useController({ control, name: '第1象限' });
-  const 第2象限 = useController({ control, name: '第2象限' });
-  const 第3象限 = useController({ control, name: '第3象限' });
-  const 第4象限 = useController({ control, name: '第4象限' });
-  const points = useFieldArray({ control, name: 'points' });
 
   useEffect(() => {
     // URLに状態を保存
     const query = QueryParamConverter.toQuery(values);
     history.pushState(null, '', `?${query}`);
 
-    mermaid // 再度描画
+    // 再度描画
+    mermaid
       .render('MermaidContainer', graphDef)
       .then(({ svg }) => {
         debouncedRenderSvg(svg);
-        // container.innerHTML = svg;
-        // setSvg(svg);
-        // refresh();
       })
       .catch(console.error);
   }, [containerRef.current, graphDef]);
@@ -103,100 +183,15 @@ export const MermaidEditor: React.FC = () => {
           <label>タイトル</label>
           <input type="text" {...title.field} />
         </div>
-        <h2>軸の設定</h2>
-        <div className="Axis">
-          <div className="X Minus">
-            <label>x軸(-)</label>
-            <input {...x軸左.field} />
-          </div>
-          {/*<span className="Arrow">{'-->'}</span>*/}
-          <div className="X Plus">
-            <label>x軸(+)</label>
-            <input {...x軸右.field} />
-          </div>
-          <div className="Y Minus">
-            <label>y軸(-)</label>
-            <input {...y軸下.field} />
-          </div>
-          {/*<span className="Arrow">{'-->'}</span>*/}
-          <div className="Y Plus">
-            <label>y軸(+)</label>
-            <input {...y軸上.field} />
-          </div>
-        </div>
-        <h2>各象限の名前</h2>
-        <div className="Quadrant">
-          <div className="SingleField D1">
-            <label>第1象限</label>
-            <input type="text" {...第1象限.field} />
-          </div>
-          <div className="SingleField D2">
-            <label>第2象限</label>
-            <input type="text" {...第2象限.field} />
-          </div>
-          <div className="SingleField D3">
-            <label>第3象限</label>
-            <input type="text" {...第3象限.field} />
-          </div>
-          <div className="SingleField D4">
-            <label>第4象限</label>
-            <input type="text" {...第4象限.field} />
-          </div>
-        </div>
-        <h2>プロット</h2>
-        <div className="Points">
-          {points.fields.map((pointField, i) => {
-            const labelName = `points.${i}.label` as const;
-            const xName = `points.${i}.x` as const;
-            const yName = `points.${i}.y` as const;
 
-            return (
-              <div className="Point" key={pointField.id}>
-                <span>Point {i + 1}: </span>
-                <Controller
-                  name={labelName}
-                  control={control}
-                  render={({ field }) => {
-                    return (
-                      <div className="Label">
-                        <label>ラベル</label>
-                        <input {...field} />
-                      </div>
-                    );
-                  }}
-                />
-                <Controller
-                  name={xName}
-                  control={control}
-                  render={({ field }) => {
-                    return (
-                      <div className="SliderContainer">
-                        <label>X</label>
-                        <Slider style={{ width: '100%' }} {...field} railStyle={{ background: 'grey' }} />
-                      </div>
-                    );
-                  }}
-                />
-                <Controller
-                  name={yName}
-                  control={control}
-                  render={({ field }) => {
-                    return (
-                      <div className="SliderContainer">
-                        <label>Y</label>
-                        <Slider style={{ width: '100%' }} {...field} railStyle={{ background: 'grey' }} />
-                      </div>
-                    );
-                  }}
-                />
-                <span onClick={() => points.remove(i)}>🗑️</span>
-              </div>
-            );
-          })}
-          <div className="ButtonContainer">
-            <button onClick={() => points.append(new FormType.Point('新規', 50, 50))}>ポイントを追加</button>
-          </div>
-        </div>
+        <h2>軸の設定</h2>
+        <AxisInput control={control} />
+
+        <h2>各象限の名前</h2>
+        <QuadrantInput control={control} />
+
+        <h2>プロット</h2>
+        <PointsInput control={control} />
         <div className={`DetailSettings ${detailSettings ? 'Open' : 'Closed'}`}>
           <h3 onClick={() => setDetailSettings(pre => !pre)}>
             詳細設定 <span className="Icon">◀︎</span>
@@ -214,23 +209,7 @@ export const MermaidEditor: React.FC = () => {
       </pre>
 
       <h2>コピー</h2>
-      <div className="CopyContainer">
-        <button
-          onClick={() => {
-            navigator.clipboard.writeText(
-              `\`\`\`mermaid
-${graphDef}
-\`\`\`
-[編集](${window.location.href})
-`,
-            );
-          }}
-        >
-          MD
-        </button>
-        {/*  copy svg to clip board */}
-        <button onClick={() => navigator.clipboard.writeText(renderedSvg)}>SVG</button>
-      </div>
+      <CopyContainer graphDef={graphDef} renderedSvg={renderedSvg} />
     </div>
   );
 };
