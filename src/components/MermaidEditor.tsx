@@ -152,7 +152,7 @@ export const MermaidEditor: React.FC = () => {
             // const x = useController({ control, name: `points.${i}.x` });
             // const y = useController({ control, name: `points.${i}.y` });
             // なぜかresetしないと値が変わらない
-            const mod = (i: ControllerRenderProps) => {
+            const mod = (i: ControllerRenderProps<any, any>) => {
               return {
                 ...i,
                 onChange: (e: any) => {
@@ -231,15 +231,15 @@ export const MermaidEditor: React.FC = () => {
       <h2>コピー</h2>
       <div className="CopyContainer">
         <button
-          onClick={() =>
+          onClick={() => {
             navigator.clipboard.writeText(
               `\`\`\`mermaid
 ${graphDef}
 \`\`\`
 [編集](${window.location.href})
 `,
-            )
-          }
+            );
+          }}
         >
           MD
         </button>
