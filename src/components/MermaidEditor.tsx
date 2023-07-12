@@ -178,38 +178,42 @@ export const MermaidEditor: React.FC = () => {
   return (
     <div className={'MermaidEditor'}>
       <h1 className="Heading">Mermaid.js 4象限グラフ エディター</h1>
-      <div className="Form">
-        <div className="Title">
-          <label>タイトル</label>
-          <input type="text" {...title.field} />
+      <div className="Content">
+        <div className="Form">
+          <div className="Title">
+            <label>タイトル</label>
+            <input type="text" {...title.field} />
+          </div>
+
+          <h2>軸の設定</h2>
+          <AxisInput control={control} />
+
+          <h2>各象限の名前</h2>
+          <QuadrantInput control={control} />
+
+          <h2>プロット</h2>
+          <PointsInput control={control} />
+          {/*<div className={`DetailSettings ${detailSettings ? 'Open' : 'Closed'}`}>*/}
+          {/*  <h3 onClick={() => setDetailSettings(pre => !pre)}>*/}
+          {/*    詳細設定 <span className="Icon">◀︎</span>*/}
+          {/*  </h3>*/}
+          {/*  <div className="Inputs"></div>*/}
+          {/*</div>*/}
         </div>
+        <div className="RenderContainer">
+          <div className="SvgContainer">
+            <img src={svgDataUrl} />
+          </div>
 
-        <h2>軸の設定</h2>
-        <AxisInput control={control} />
+          <h2>コピー</h2>
+          <CopyContainer graphDef={graphDef} renderedSvg={renderedSvg} />
 
-        <h2>各象限の名前</h2>
-        <QuadrantInput control={control} />
-
-        <h2>プロット</h2>
-        <PointsInput control={control} />
-        <div className={`DetailSettings ${detailSettings ? 'Open' : 'Closed'}`}>
-          <h3 onClick={() => setDetailSettings(pre => !pre)}>
-            詳細設定 <span className="Icon">◀︎</span>
-          </h3>
-          <div className="Inputs"></div>
+          <h2>Markdown</h2>
+          <pre>
+            <code>{graphDef}</code>
+          </pre>
         </div>
       </div>
-      <div className="SvgContainer">
-        <img src={svgDataUrl} />
-      </div>
-
-      <h2>Markdown</h2>
-      <pre>
-        <code>{graphDef}</code>
-      </pre>
-
-      <h2>コピー</h2>
-      <CopyContainer graphDef={graphDef} renderedSvg={renderedSvg} />
     </div>
   );
 };

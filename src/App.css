@@ -1,9 +1,22 @@
 #root {
   width: 800px;
-  max-width: 1280px;
+  background-color: #222;
+  color: #fff;
   margin: 0 auto;
   padding: 2rem;
   text-align: center;
+}
+
+@media screen and (max-width: 1398px) {
+  #root {
+    width: 800px;
+  }
+}
+@media screen and (min-width: 1398px) {
+  #root {
+    width: 100%;
+    max-width: 1440px;
+  }
 }
 
 .logo {
