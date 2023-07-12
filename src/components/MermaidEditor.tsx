@@ -43,8 +43,8 @@ export const MermaidEditor: React.FC = () => {
   const [defaultFormValue] = useState(QueryParamConverter.parseUrl());
   const [renderedSvg, setRenderedSvg] = useState('');
 
-  const { control, getValues, register, reset } = useForm<FormType>({
-    mode: 'onChange',
+  const { control, getValues, watch, setValue, register, reset } = useForm<FormType>({
+    mode: 'all',
     defaultValues: defaultFormValue,
   });
 
@@ -62,7 +62,7 @@ export const MermaidEditor: React.FC = () => {
   };
   const debouncedRenderSvg = useDebouncedCallback(setSvg, 50);
 
-  const values = getValues();
+  const values = watch();
   const graphDef = graphDefinition(values);
 
   const title = useController({ control, name: 'title' });
@@ -94,9 +94,10 @@ export const MermaidEditor: React.FC = () => {
 
   const [detailSettings, setDetailSettings] = useState(false);
 
+  console.log('render');
   return (
     <div className={'MermaidEditor'}>
-      <h1>mermaid editor</h1>
+      <h1 className="Heading">Mermaid.js 4象限グラフ エディター</h1>
       <div className="Form">
         <div className="Title">
           <label>タイトル</label>
@@ -148,22 +149,6 @@ export const MermaidEditor: React.FC = () => {
             const labelName = `points.${i}.label` as const;
             const xName = `points.${i}.x` as const;
             const yName = `points.${i}.y` as const;
-            // const label = useController({ control, name: labelName });
-            // const x = useController({ control, name: `points.${i}.x` });
-            // const y = useController({ control, name: `points.${i}.y` });
-            // なぜかresetしないと値が変わらない
-            const mod = (i: ControllerRenderProps<any, any>) => {
-              return {
-                ...i,
-                onChange: (e: any) => {
-                  i.onChange(e);
-                  reset();
-                },
-              };
-            };
-            // const label = mod(register(labelName));
-            // const x = mod(register(xName));
-            // const y = mod(register(yName));
 
             return (
               <div className="Point" key={pointField.id}>
@@ -175,7 +160,7 @@ export const MermaidEditor: React.FC = () => {
                     return (
                       <div className="Label">
                         <label>ラベル</label>
-                        <input {...mod(field)} />
+                        <input {...field} />
                       </div>
                     );
                   }}
@@ -187,7 +172,7 @@ export const MermaidEditor: React.FC = () => {
                     return (
                       <div className="SliderContainer">
                         <label>X</label>
-                        <Slider style={{ width: '100%' }} {...mod(field)} railStyle={{ background: 'grey' }} />
+                        <Slider style={{ width: '100%' }} {...field} railStyle={{ background: 'grey' }} />
                       </div>
                     );
                   }}
@@ -199,7 +184,7 @@ export const MermaidEditor: React.FC = () => {
                     return (
                       <div className="SliderContainer">
                         <label>Y</label>
-                        <Slider style={{ width: '100%' }} {...mod(field)} railStyle={{ background: 'grey' }} />
+                        <Slider style={{ width: '100%' }} {...field} railStyle={{ background: 'grey' }} />
                       </div>
                     );
                   }}

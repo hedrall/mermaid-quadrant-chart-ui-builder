@@ -1,6 +1,13 @@
 .MermaidEditor {
   text-align: left;
 
+  * {
+    font-family: "Noto Sans JP", Barlow;
+  }
+
+  .Heading {
+    font-size: 48px;
+  }
   h2 {
     margin-bottom: 0;
   }
