@@ -5,8 +5,11 @@
     font-family: "Noto Sans JP", Barlow;
   }
 
-  h1.Heading {
-    font-size: 48px;
+  .Headings {
+    h1 {
+      font-size: 48px;
+      margin: 0;
+    }
     margin-bottom: 64px;
   }
 

@@ -174,10 +174,14 @@ export const MermaidEditor: React.FC = () => {
 
   const [detailSettings, setDetailSettings] = useState(false);
 
-  console.log('render');
   return (
     <div className={'MermaidEditor'}>
-      <h1 className="Heading">Mermaid.js 4象限グラフ エディター</h1>
+      <div className="Headings">
+        <h1>Mermaid.js 4象限グラフ エディター</h1>
+        <a href="https://github.com/hedrall/mermaid-quadrant-chart-ui-builder" target="_blank">
+          Github Repository
+        </a>
+      </div>
       <div className="Content">
         <div className="Form">
           <div className="Title">
