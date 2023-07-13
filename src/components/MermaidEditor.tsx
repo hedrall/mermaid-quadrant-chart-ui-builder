@@ -134,7 +134,7 @@ export const MermaidEditor: React.FC = () => {
   const [defaultFormValue] = useState(QueryParamConverter.parseUrl());
   const [renderedSvg, setRenderedSvg] = useState('');
 
-  const { control, watch } = useForm<FormType>({
+  const { control, watch, reset } = useForm<FormType>({
     mode: 'all',
     defaultValues: defaultFormValue,
   });
@@ -203,6 +203,18 @@ export const MermaidEditor: React.FC = () => {
           {/*  </h3>*/}
           {/*  <div className="Inputs"></div>*/}
           {/*</div>*/}
+
+          <h2>危険ゾーン</h2>
+          <div className="Danger">
+            <button
+              className="Clear"
+              onClick={() => {
+                reset(FormType.Default());
+              }}
+            >
+              入力を全てクリア
+            </button>
+          </div>
         </div>
         <div className="RenderContainer">
           <div className="SvgContainer">

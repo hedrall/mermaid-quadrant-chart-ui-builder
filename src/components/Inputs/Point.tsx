@@ -27,11 +27,11 @@ export const PointInput = (props: {
       </div>
       <div className="SliderContainer">
         <label>X</label>
-        <Slider style={{ width: '100%' }} {...x.field} railStyle={{ background: 'grey' }} />
+        <Slider style={{ width: '100%' }} step={5} {...x.field} railStyle={{ background: 'grey' }} />
       </div>
       <div className="SliderContainer">
         <label>Y</label>
-        <Slider style={{ width: '100%' }} {...y.field} railStyle={{ background: 'grey' }} />
+        <Slider style={{ width: '100%' }} step={5} {...y.field} railStyle={{ background: 'grey' }} />
       </div>
       <span onClick={() => onRemove(index)}>🗑️</span>
     </div>
